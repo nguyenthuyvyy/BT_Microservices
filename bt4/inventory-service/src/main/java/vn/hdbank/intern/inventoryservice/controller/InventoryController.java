@@ -13,7 +13,6 @@ import vn.hdbank.intern.inventoryservice.model.Inventory;
 import vn.hdbank.intern.inventoryservice.repository.InventoryRepo;
 import vn.hdbank.intern.inventoryservice.service.InventoryService;
 
-
 @Slf4j
 @RestController
 @RequestMapping("/v1/api/inventory")
@@ -25,14 +24,14 @@ public class InventoryController {
     @GetMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<BaseResponse> isInStock(@RequestParam String skuCode) {
-        if(inventoryService.checkStock(skuCode)) {
+        if (inventoryService.checkStock(skuCode)) {
             log.info("Inventory found with SKU {}", skuCode);
             return ResponseEntity.ok().body(BaseResponse.builder()
                     .skuCode(skuCode)
                     .isInStock(true)
                     .quantity(inventoryService.getQuantityBySkuCode(skuCode))
                     .build());
-        }else {
+        } else {
             log.info("Inventory not found with SKU {}", skuCode);
             return ResponseEntity.ok().body(BaseResponse.builder()
                     .skuCode(skuCode)
@@ -50,6 +49,5 @@ public class InventoryController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to update stock for SKU: " + skuCode);
         }
     }
-
 
 }

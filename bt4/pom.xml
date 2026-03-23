@@ -19,7 +19,9 @@
         <module>product-service</module>
         <module>order-service</module>
         <module>inventory-service</module>
+        <module>notification-service</module>
         <module>discovery-server</module>
+        <module>api-gateway</module>
     </modules>
 
     <properties>

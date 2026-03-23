@@ -147,7 +147,20 @@ services:
 #      - postgres:/var/lib/postgresql/data
     networks:
       - app-network
-
+#Keycloak
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak
+    ports:
+      - "8180:8080"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://host.docker.internal:5432/keycloak
+      KC_DB_USERNAME: microservice
+      KC_DB_PASSWORD: 123
+    command: ["start-dev"]
 # Product Service
   product-service:
     build: ./product-service
@@ -210,7 +223,44 @@ services:
       - discovery-service
     ports:
       - "8083:8083"
+# Notification Service
+  notification-service:
+    image: notification-service
+    container_name: notification-service
+    networks:
+      - app-network
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092,kafka-2:9094,kafka-3:9096
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+      - discovery-service
 
+# API Gateway
+  api-gateway:
+    image: api-gateway
+    container_name: api-gateway
+    ports:
+      - "8181:8181"
+    environment:
+      - SPRING_APPLICATION_NAME=api-gateway
+      - SERVER_PORT=8181
+      - SPRING_CLOUD_GATEWAY_ROUTES_0_ID=product-service
+      - SPRING_CLOUD_GATEWAY_ROUTES_0_URI=lb://product-service
+      - SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_0=Path=/v1/api/product
+      - SPRING_CLOUD_GATEWAY_ROUTES_1_ID=order-service
+      - SPRING_CLOUD_GATEWAY_ROUTES_1_URI=lb://order-service
+      - SPRING_CLOUD_GATEWAY_ROUTES_1_PREDICATES_0=Path=/v1/api/order
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8180/realms/myrealm
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://keycloak:8180/realms/myrealm/protocol/openid-connect/certs
+    depends_on:
+      - discovery-service
+      - keycloak
+    networks:
+      - app-network
 networks:
   app-network:
     driver: bridge
@@ -224,3 +274,6 @@ volumes:
     driver: local
   kafka-data-3:
     driver: local
+
+
+

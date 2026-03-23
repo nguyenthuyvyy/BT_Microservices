@@ -225,6 +225,7 @@ services:
       - "8083:8083"
 # Notification Service
   notification-service:
+    build: ./notification-service
     image: notification-service
     container_name: notification-service
     networks:
@@ -240,6 +241,7 @@ services:
 
 # API Gateway
   api-gateway:
+    build: ./api-gateway
     image: api-gateway
     container_name: api-gateway
     ports:
